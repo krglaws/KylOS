@@ -1,0 +1,12 @@
+
+# BIOS
+romimage: file=/usr/local/share/bochs/BIOS-bochs-latest
+vgaromimage: file=/usr/local/share/bochs/VGABIOS-lgpl-latest
+
+# boot from
+floppya: image=boot.img, status=inserted
+
+# logging
+log: kylos.log
+error: action=report
+info: action=report
