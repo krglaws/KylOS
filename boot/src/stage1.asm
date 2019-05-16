@@ -1,5 +1,5 @@
-[org 0x7c00]
 [bits 16]
+[org 0x7c00]
 
 mov ah, 0xe
 mov bx, greeting
@@ -21,17 +21,29 @@ find_ram:
 	mov cx, 0xa
 
 print_ram:
-	cmp ax, 0	; if RAM is 0,
-	je done		; jump to done
-	xor dx, dx	; zero out dx
-	div cx		; ax = dx:ax / cx, dx = ax % cx
-	mov bx, ax	; save RAM count
-	mov ah, 0xe	; prepare to print
-	mov al, dl	; grab mod from dx
-	add al, 0x30	; apply ascii offset
-	int 0x10	; print
-	mov ax, bx	; return RAM to ax
-	jmp print_ram	; loop
+	cmp ax, 0
+	je ram_done
+	xor dx, dx
+	div cx
+	mov bx, ax
+	mov ah, 0xe
+	mov al, dl
+	add al, 0x30
+	int 0x10
+	mov ax, bx
+	jmp print_ram	
+
+ram_done:
+	mov ah, 0x0e
+	mov bx, read_attempt_msg
+
+print_read_attempt:
+	mov al, [bx]
+	cmp al, 0
+	je reset_disk
+	int 0x10
+	add bx, 1
+	jmp print_read_attempt
 
 reset_disk:
 	mov ah, 0
@@ -39,9 +51,9 @@ reset_disk:
 	int 0x13
 	jc reset_disk
 
-	mov ax, 0x7e00
+	mov ax, 0x0000
 	mov es, ax
-	xor bx, bx
+	mov bx, 0x7e00
 
 read_disk:
 	mov ah, 0x02
@@ -53,34 +65,15 @@ read_disk:
 	int 0x13
 	jc read_disk
 	
-	jmp 0x07e0:0
+	jmp 0x0:0x7e00
 
 done:
+	cli
 	hlt
 
 greeting db "Welcome to KylOS!", 0x0a, 0x0d, 0x0a, 0x0d, "Available memory (KBs): ", 0
+read_attempt_msg db 0x0a, 0x0d, "Attempting to read sector 2...", 0x0a, 0x0d, 0
 
 times 510 - ($ - $$) db 0
 dw 0xaa55
-
-
-;**************
-;start sector 2
-;**************
-
-mov ah, 0x0e
-mov bx, greeting2
-
-print_greeting2:
-	mov al, [bx]
-	cmp al, 0
-	je done
-	int 0x10
-	add bx, 1
-	jmp print_greeting2
-
-
-greeting2 db 0x0a, 0x0d, "Successfully read sector 2!", 0
-
-
 
