@@ -5,6 +5,8 @@
 ;start sector 2
 ;**************
 
+db 0xff
+
 mov ah, 0x0e
 mov bx, greeting
 
