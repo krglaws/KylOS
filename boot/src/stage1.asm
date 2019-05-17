@@ -101,7 +101,6 @@ print_byte:
 	mov bx, ax
 	mov ah, 0xe
 	mov al, dl
-	add al, 0x30
 	int 0x10
 	mov ax, bx
 	jmp print_byte
