@@ -46,6 +46,11 @@ print_read_attempt:
 	jmp print_read_attempt
 
 reset_disk:
+
+	mov ah, 0xe 
+	mov al, "z"
+	int 0x10 	; print 'z' for every reset attempt
+
 	mov ah, 0
 	mov dl, 0
 	int 0x13
@@ -56,16 +61,49 @@ reset_disk:
 	mov bx, 0x7e00
 
 read_disk:
-	mov ah, 0x02
-	mov al, 1
-	mov ch, 1
-	mov cl, 2
-	mov dh, 0
-	mov dl, 0
+
+	mov ah, 0x0e
+	mov al, "r"
+	int 0x10	; print 'r' for every read attempt
+
+	mov ah, 2	; read sector from disk
+	mov al, 1	; number of sectors
+	mov ch, 0	; cylinder number
+	mov cl, 2	; sector number (start from 1)
+	mov dh, 0	; head number
+	mov dl, 0	; drive number
 	int 0x13
-	jc read_disk
+	jc reset_disk
 	
-	jmp 0x0:0x7e00
+	jmp 0x7e00
+
+get_byte_at_7e00:
+	
+	mov ah, 0xe
+	mov al, "b"
+	int 0x10
+	
+	mov al, ":"
+	int 0x10
+	
+	mov al, " "
+	int 0x10
+
+	mov bx, 0x7dff
+	mov ax, [bx]
+	mov cx, 0xa
+	
+print_byte:
+	cmp ax, 0
+	je done
+	xor dx, dx
+	div cx
+	mov bx, ax
+	mov ah, 0xe
+	mov al, dl
+	int 0x10
+	mov ax, bx
+	jmp print_byte
 
 done:
 	cli

@@ -5,7 +5,7 @@
 ;start sector 2
 ;**************
 
-mov ah, 0x0e
+mov ah, 0xe
 mov bx, greeting
 
 print_greeting:
