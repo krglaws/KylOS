@@ -1,4 +1,8 @@
 
+# hardware
+cpu: count=1:6:1
+memory: guest=32, host=32
+
 # BIOS
 romimage: file=/usr/local/share/bochs/BIOS-bochs-latest
 vgaromimage: file=/usr/local/share/bochs/VGABIOS-lgpl-latest

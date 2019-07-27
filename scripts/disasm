@@ -1,0 +1,4 @@
+
+# disassemble flat 16-bit files
+
+objdump -D -b binary -mi 386 -M addr16,data16,intel $1

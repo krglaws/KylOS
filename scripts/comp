@@ -1,0 +1,2 @@
+cc -c $1 -o $2
+objcopy -O binary $2 $2
