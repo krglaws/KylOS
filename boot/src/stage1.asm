@@ -1,117 +1,123 @@
+
 [bits 16]
 [org 0x7c00]
 
-mov ah, 0xe
-mov bx, greeting
+; =======================================================
+; setup stack and stuff
+; 1st KiB reserved for bootloader
+; 1st 512 bytes for boot code
+; 2nd 512 for stack space -- probably more than necessary
+; =======================================================
 
-print_greeting:
-	mov al, [bx]
-	cmp al, 0
-	je find_ram
-	int 0x10
-	add bx, 1
-	jmp print_greeting
+init:
+	mov ax, 0x7e00
+	mov ss, ax 	; ss 512 bytes ahead
+	mov sp, 0x0200	; sp 512 ahead of ss
 
-find_ram:
-	xor ax, ax
-	xor bx, bx
-	xor cx, cx
-	xor dx, dx
-	int 0x12
-	mov cx, 0xa
+	mov ax, 0x0
+	mov ds, ax	; set ds to 0, make life easier
 
-print_ram:
-	cmp ax, 0
-	je ram_done
-	xor dx, dx
-	div cx
-	mov bx, ax
-	mov ah, 0xe
-	mov al, dl
-	add al, 0x30
-	int 0x10
-	mov ax, bx
-	jmp print_ram	
 
-ram_done:
-	mov ah, 0x0e
-	mov bx, read_attempt_msg
+; ==========
+; main duhhh
+; ==========
 
-print_read_attempt:
-	mov al, [bx]
-	cmp al, 0
-	je reset_disk
-	int 0x10
-	add bx, 1
-	jmp print_read_attempt
+main:
 
-reset_disk:
-
-	mov ah, 0xe 
-	mov al, "z"
-	int 0x10 	; print 'z' for every reset attempt
-
-	mov ah, 0
-	mov dl, 0
-	int 0x13
-	jc reset_disk
-
-	mov ax, 0x0000
-	mov es, ax
-	mov bx, 0x7e00
-
-read_disk:
-
-	mov ah, 0x0e
-	mov al, "r"
-	int 0x10	; print 'r' for every read attempt
-
-	mov ah, 2	; read sector from disk
-	mov al, 1	; number of sectors
-	mov ch, 0	; cylinder number
-	mov cl, 2	; sector number (start from 1)
-	mov dh, 0	; head number
-	mov dl, 0	; drive number
-	int 0x13
-	jc reset_disk
+	; display RAM info
+	mov si, ram_str
+	call print_str
 	
-	jmp 0x7e00
+	call get_ram
+	call print_num
 
-get_byte_at_7e00:
-	
-	mov ah, 0xe
-	mov al, "b"
-	int 0x10
-	
-	mov al, ":"
-	int 0x10
-	
-	mov al, " "
-	int 0x10
+	mov si, new_line
+	call print_str
 
-	mov bx, 0x7dff
-	mov ax, [bx]
-	mov cx, 0xa
+	; display disk info
 	
-print_byte:
-	cmp ax, 0
-	je done
-	xor dx, dx
-	div cx
-	mov bx, ax
-	mov ah, 0xe
-	mov al, dl
-	int 0x10
-	mov ax, bx
-	jmp print_byte
 
-done:
+	; display cpu info
+
+	; switch to protected mode
+	cli
+	lgdt [gdtr]
+	mov eax, cr0
+	or al, 1
+	mov cr0, eax
+
 	cli
 	hlt
 
-greeting db "Welcome to KylOS!", 0x0a, 0x0d, 0x0a, 0x0d, "Available memory (KBs): ", 0
-read_attempt_msg db 0x0a, 0x0d, "Attempting to read sector 2...", 0x0a, 0x0d, 0
 
-times 510 - ($ - $$) db 0
+; ===========================
+; in: dx:ax - number to print
+; out: none
+; ===========================
+
+print_num:
+	cmp ax, 0	; if we get 0, 
+	je .zero	; just print and return
+	
+	xor dx, dx
+	mov cx, 0xa
+	div cx
+	push dx		; push remainder
+	
+	cmp ax, 0	; if quotient is 0
+	je .done	; print and return
+
+	call print_num	; otherwise call print_num
+	
+    .done:
+	pop ax		; should be 0x09 or less
+	add al, 0x30	; add ASCII offset
+	mov ah, 0xe
+	int 0x10	; pop and print
+	ret
+
+    .zero:
+	push ax
+	jmp .done
+
+
+; ==========================
+; in: si - pointer to string
+; out: none
+; ==========================
+
+print_str:
+	mov ah, 0xe
+
+    .next:
+	lodsb
+	cmp al, 0
+	je .done
+	int 0x10
+	jmp .next
+
+    .done:
+	ret
+
+
+; ======================================
+; in: none
+; out: ax - available RAM in kBs (KiBs?)
+; ======================================
+
+get_ram:
+	clc
+	xor ax, ax
+	int 0x12
+	ret
+
+
+ram_str db "Available RAM (kBs): ", 0
+
+realmode_str db "Entering Protected Mode... ", 0
+
+new_line db 0x0a, 0x0d, 0x00
+
+times 510 -  ($ - $$) db 0
 dw 0xaa55
 
