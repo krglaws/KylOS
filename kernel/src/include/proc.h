@@ -43,14 +43,14 @@ struct process {
 	enum proc_state state;
 	enum proc_priority priority;
 
-	const unsigned int text_start;
-	const unsigned int data_start;
+	const void *text_start;
+	const void *data_start;
 
-	const unsigned int heap_start;
-	unsigned int heap_ptr;
+	const void *heap_start;
+	void *heap_ptr;
 	
-	unsigned int stack_ptr;
-	const unsigned int stack_start;
+	void *stack_ptr;
+	const void *stack_start;
 };
 
 // -------------------------------
