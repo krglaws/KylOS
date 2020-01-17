@@ -34,23 +34,21 @@ main:
 	mov si, new_line
 	call print_str
 
-	;call find_rsdp
-	;cmp eax, 0
+	call find_rsdp
+	cmp eax, 0
+
+	je .not_found
 
 	mov si, rsdp_found_str
 	call print_str
-
-	;je .not_found
-
-	;mov si, rsdp_found_str
-	;call print_str
-	;mov si, new_line
-	;call print_str
+	mov si, new_line
+	call print_str
 
 	cli
 	hlt
 
 .not_found:
+
 	mov si, rsdp_not_found_str
 	call print_str
 	mov si, new_line
@@ -92,7 +90,7 @@ print_num:
 
 
 ; ==========================
-; in: si - pointer to string
+; in: ds:si - pointer to string
 ; out: none
 ; ==========================
 
@@ -128,7 +126,7 @@ get_ram:
 ; ============================================
 
 find_rsdp:
-	mov eax, 0x0000040E ; ptr to RSDP is sometimes located here
+	mov eax, 0x0000040E ;ptr to RSDP is sometimes located here
 
 	mov edx, 0x20445352
 	mov ecx, [eax]
@@ -145,7 +143,7 @@ find_rsdp:
 	mov eax, 0x000DFFFF
 .loop:
 	add eax, 1
-	cmp eax, 0x000E0000
+	cmp eax, 0x000E0000 ; any higher and it crashes... check bochsrc for RAM setting?
 	je .nada
 
 	mov edx, 0x20445352
