@@ -1,6 +1,6 @@
 
 # hardware
-# (1 die: 6 cores: 1 thread per core)?
+# (1 die: 1 cores: 1 thread per core)?
 cpu: count=1:1:1
 memory: guest=32, host=32
 
@@ -15,3 +15,4 @@ floppya: image=boot.img, status=inserted
 log: kylos.log
 error: action=report
 info: action=report
+
