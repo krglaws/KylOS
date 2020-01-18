@@ -126,24 +126,43 @@ get_ram:
 ; ============================================
 
 find_rsdp:
-	mov eax, 0x0000040E ;ptr to RSDP is sometimes located here
+	mov ax, 0x0
+	mov ds, ax
 
-	mov edx, 0x20445352
-	mov ecx, [eax]
-	cmp ecx, edx
+	mov ax, rsdp_sig
+	mov es, ax
+
+	mov si, 0x0000040E
+	mov ax, [si]
+	mov ds, ax
+
+	mov si, 0x0
+
+.loop1:
+	cmp si, 0x8
+	je .found1
+
+	mov al, [ds:si]
+	mov bl, [es:si]
+
+	cmp al, bl
 	jne .E0000
 
-	mov edx, 0x20525450
-	mov ecx, [eax + 0x04]
-	cmp ecx, edx
-	jne .E0000
+	add si, 0x1
+	jmp .loop1
 
+.found1:
+	mov ax, 0
+	mov ds, ax
+	mov ax, [0x040E]
 	ret
+
+; rewrite this whole second half
 .E0000:
 	mov eax, 0x000DFFFF
 .loop:
 	add eax, 1
-	cmp eax, 0x000E0000 ; any higher and it crashes... check bochsrc for RAM setting?
+	cmp eax, 0x000E0001
 	je .nada
 
 	mov edx, 0x20445352
@@ -171,6 +190,8 @@ rsdp_found_str db "RSDP Found.", 0
 rsdp_not_found_str db "RSDP Not Found.", 0
 
 new_line db 0x0a, 0x0d, 0x00
+
+rsdp_sig db "RSD PTR "
 
 times 510 -  ($ - $$) db 0
 dw 0xaa55
