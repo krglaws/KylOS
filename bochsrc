@@ -1,18 +1,18 @@
 
-# hardware
-# (1 die: 1 cores: 1 thread per core)?
-cpu: count=1:1:1
+# 1 die: 2 cores per die: 1 thread per core
+cpu: model=bx_generic, count=1:4:1, ips=1000000
+
+cpuid: apic=xapic
+
 memory: guest=32, host=32
 
-# BIOS
-romimage: file=/usr/local/share/bochs/BIOS-bochs-latest
-vgaromimage: file=/usr/local/share/bochs/VGABIOS-lgpl-latest
+romimage: file=/export/home6/kglaws/workspace/bochs/bochs-2.6.11/bios/BIOS-bochs-latest
+vgaromimage: file=/export/home6/kglaws/workspace/bochs/bochs-2.6.11/bios/VGABIOS-lgpl-latest
 
-# boot from
-floppya: image=boot.img, status=inserted
+floppya: 1_44=kylos.img, status=inserted
 
 # logging
-log: kylos.log
+log: /dev/null
 error: action=report
 info: action=report
 
